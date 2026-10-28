@@ -1,0 +1,655 @@
+{
+    "openapi": "3.1.2",
+    "info": {
+        "title": "Showroom Mobil API",
+        "version": "0.0.1"
+    },
+    "servers": [
+        {
+            "url": "http://localhost:8000/api"
+        }
+    ],
+    "paths": {
+        "/user": {
+            "get": {
+                "responses": {
+                    "200": {
+                        "description": "`User`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/User"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
+                    }
+                }
+            }
+        },
+        "/mobil": {
+            "get": {
+                "operationId": "mobil.index",
+                "description": "Mendukung query parameter pencarian & penyaringan (bonus):\n?search=avanza&brand=Toyota&status=tersedia",
+                "summary": "Menampilkan daftar seluruh mobil",
+                "tags": [
+                    "Mobil"
+                ],
+                "parameters": [
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "brand",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "transmisi",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Array of `MobilResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/MobilResource"
+                                            }
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Daftar mobil berhasil diambil"
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "operationId": "mobil.store",
+                "summary": "Menambahkan unit mobil baru ke database",
+                "tags": [
+                    "Mobil"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "nama": {
+                                        "type": "string",
+                                        "maxLength": 150
+                                    },
+                                    "brand": {
+                                        "type": "string",
+                                        "maxLength": 100
+                                    },
+                                    "harga": {
+                                        "type": "integer",
+                                        "minimum": 0
+                                    },
+                                    "tahun": {
+                                        "type": "integer",
+                                        "minimum": 1900,
+                                        "maximum": 2027
+                                    },
+                                    "transmisi": {
+                                        "type": "string",
+                                        "enum": [
+                                            "Manual",
+                                            "Matic",
+                                            "CVT"
+                                        ]
+                                    },
+                                    "bahan_bakar": {
+                                        "type": "string",
+                                        "enum": [
+                                            "Bensin",
+                                            "Diesel",
+                                            "Hybrid",
+                                            "Listrik"
+                                        ]
+                                    },
+                                    "status": {
+                                        "type": "string",
+                                        "enum": [
+                                            "tersedia",
+                                            "sold"
+                                        ]
+                                    },
+                                    "foto": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ],
+                                        "format": "uri",
+                                        "maxLength": 500
+                                    },
+                                    "warna": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ],
+                                        "maxLength": 50
+                                    },
+                                    "kilometer": {
+                                        "type": [
+                                            "integer",
+                                            "null"
+                                        ],
+                                        "minimum": 0
+                                    },
+                                    "plat_nomor": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ],
+                                        "maxLength": 12
+                                    },
+                                    "deskripsi": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ],
+                                        "maxLength": 2000
+                                    }
+                                },
+                                "required": [
+                                    "nama",
+                                    "brand",
+                                    "harga",
+                                    "tahun",
+                                    "transmisi",
+                                    "bahan_bakar",
+                                    "status"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "`MobilResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/MobilResource"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Data mobil berhasil ditambahkan"
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/mobil/{mobil}": {
+            "get": {
+                "operationId": "mobil.show",
+                "summary": "Menampilkan detail satu mobil berdasarkan ID",
+                "tags": [
+                    "Mobil"
+                ],
+                "parameters": [
+                    {
+                        "name": "mobil",
+                        "in": "path",
+                        "required": true,
+                        "description": "The mobil ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "`MobilResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/MobilResource"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Detail mobil berhasil diambil"
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    }
+                }
+            },
+            "put": {
+                "operationId": "mobil.update",
+                "summary": "Memperbarui data mobil yang sudah ada",
+                "tags": [
+                    "Mobil"
+                ],
+                "parameters": [
+                    {
+                        "name": "mobil",
+                        "in": "path",
+                        "required": true,
+                        "description": "The mobil ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "nama": {
+                                        "type": "string",
+                                        "maxLength": 150
+                                    },
+                                    "brand": {
+                                        "type": "string",
+                                        "maxLength": 100
+                                    },
+                                    "harga": {
+                                        "type": "integer",
+                                        "minimum": 0
+                                    },
+                                    "tahun": {
+                                        "type": "integer",
+                                        "minimum": 1900,
+                                        "maximum": 2027
+                                    },
+                                    "transmisi": {
+                                        "type": "string",
+                                        "enum": [
+                                            "Manual",
+                                            "Matic",
+                                            "CVT"
+                                        ]
+                                    },
+                                    "bahan_bakar": {
+                                        "type": "string",
+                                        "enum": [
+                                            "Bensin",
+                                            "Diesel",
+                                            "Hybrid",
+                                            "Listrik"
+                                        ]
+                                    },
+                                    "status": {
+                                        "type": "string",
+                                        "enum": [
+                                            "tersedia",
+                                            "sold"
+                                        ]
+                                    },
+                                    "foto": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ],
+                                        "format": "uri",
+                                        "maxLength": 500
+                                    },
+                                    "warna": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ],
+                                        "maxLength": 50
+                                    },
+                                    "kilometer": {
+                                        "type": [
+                                            "integer",
+                                            "null"
+                                        ],
+                                        "minimum": 0
+                                    },
+                                    "plat_nomor": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ],
+                                        "maxLength": 12
+                                    },
+                                    "deskripsi": {
+                                        "type": [
+                                            "string",
+                                            "null"
+                                        ],
+                                        "maxLength": 2000
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "`MobilResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/MobilResource"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Data mobil berhasil diperbarui"
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    }
+                }
+            },
+            "delete": {
+                "operationId": "mobil.destroy",
+                "summary": "Menghapus unit mobil dari database",
+                "tags": [
+                    "Mobil"
+                ],
+                "parameters": [
+                    {
+                        "name": "mobil",
+                        "in": "path",
+                        "required": true,
+                        "description": "The mobil ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Data mobil berhasil dihapus"
+                                        },
+                                        "data": {
+                                            "type": "null"
+                                        }
+                                    },
+                                    "required": [
+                                        "message",
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "MobilResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "nama": {
+                        "type": "string"
+                    },
+                    "brand": {
+                        "type": "string"
+                    },
+                    "harga": {
+                        "type": "integer"
+                    },
+                    "tahun": {
+                        "type": "integer"
+                    },
+                    "transmisi": {
+                        "type": "string"
+                    },
+                    "bahan_bakar": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "type": "string"
+                    },
+                    "foto": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "warna": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "kilometer": {
+                        "type": "integer"
+                    },
+                    "plat_nomor": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "deskripsi": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    }
+                },
+                "required": [
+                    "id",
+                    "nama",
+                    "brand",
+                    "harga",
+                    "tahun",
+                    "transmisi",
+                    "bahan_bakar",
+                    "status",
+                    "foto",
+                    "warna",
+                    "kilometer",
+                    "plat_nomor",
+                    "deskripsi"
+                ],
+                "title": "MobilResource"
+            },
+            "User": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "email": {
+                        "type": "string"
+                    },
+                    "email_verified_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "created_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "format": "date-time"
+                    }
+                },
+                "required": [
+                    "id",
+                    "name",
+                    "email",
+                    "email_verified_at",
+                    "created_at",
+                    "updated_at"
+                ],
+                "title": "User"
+            }
+        },
+        "responses": {
+            "AuthenticationException": {
+                "description": "Unauthenticated",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string",
+                                    "description": "Error overview."
+                                }
+                            },
+                            "required": [
+                                "message"
+                            ]
+                        }
+                    }
+                }
+            },
+            "ValidationException": {
+                "description": "Validation error",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string",
+                                    "description": "Errors overview."
+                                },
+                                "errors": {
+                                    "type": "object",
+                                    "description": "A detailed description of each field that failed validation.",
+                                    "additionalProperties": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            },
+                            "required": [
+                                "message",
+                                "errors"
+                            ]
+                        }
+                    }
+                }
+            },
+            "ModelNotFoundException": {
+                "description": "Not found",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string",
+                                    "description": "Error overview."
+                                }
+                            },
+                            "required": [
+                                "message"
+                            ]
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
