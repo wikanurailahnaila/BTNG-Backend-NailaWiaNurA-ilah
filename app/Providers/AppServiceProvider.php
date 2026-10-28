@@ -21,10 +21,13 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Dokumentasi API Scramble dapat diakses publik di /docs/api
-        Scramble::configure('default')->expose('/docs/api', '/docs/api.json');
+        if ($this->app->environment('production')) {
+            URL::forceScheme('https');
+        }
 
-        Gate::define('viewApiDocs', function (?object $user = null) {
+        Scramble::ignoreDefaultRoutes();
+
+        Gate::define('viewApiDocs', function (?User $user = null) {
             return true;
         });
     }
